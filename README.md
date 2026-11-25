@@ -1,86 +1,179 @@
-# AI AutoClip Studio (ClipYantra) — VS Code Copilot Engineering Kit
+# ClipYantra — Complete Product, Design & Copilot Starter Kit
 
-This kit configures a gated, step-by-step AI-assisted development workflow for AI AutoClip Studio.
+> **Product:** ClipYantra (AI AutoClip Studio)
+> **Status:** Contract and design baselines approved. Placeholder scaffold is authorized by `APPROVE SCAFFOLD v1`; implementation slices remain blocked on slice approval.
+> **Purpose:** Start a new or existing ClipYantra repository with a complete product/engineering plan, a design-first workflow, reusable Copilot skills, specialist agents and sequential approval-gated prompts.
 
-## Product baseline
+## What is included
 
-- Mixed source ingestion: user-owned or authorized uploads, direct media URLs, cloud storage imports, watched folders, and supported platform imports.
-- Hybrid AI: local processing plus selectable cloud providers.
-- Providers: NVIDIA (API Catalog and optional self-hosted NIM), Gemini, OpenAI, Anthropic, Groq, Deepgram, Ollama/Qwen, WhisperX.
-- NVIDIA model family candidates: Nemotron multimodal/video, Nemotron vision-language, Nemotron text reasoning, and Nemotron Transcribe. Model IDs and capabilities must be verified against current official documentation at implementation time; do not assume a model supports a modality because its family name suggests it.
+- Product requirements, architecture, data model, APIs, AI-provider routing, media pipeline, publishing, analytics, security, testing, deployment and third-party research.
+- A complete design foundation: UX research, information architecture, brand direction, visual system, screen specifications, interaction states, accessibility, responsive behavior and visual QA.
+- Workspace Copilot instructions, root `AGENTS.md`, scoped frontend instructions, specialist agents, reusable Agent Skills and sequential prompts.
+- Design is a mandatory phase before frontend scaffolding or implementation.
+- Existing proposed decisions are clearly labelled as proposals until discovery and human approval.
+
+## Start from the beginning
+
+1. Extract this archive into a new folder or merge the contents into your existing repository after backing it up.
+2. Open the repository root in VS Code. Do not copy over an existing file blindly; merge user-owned instructions and documentation.
+3. Read `AGENTS.md`, `.github/copilot-instructions.md` and this README.
+4. Select the **Architect** agent and run `/00-project-discovery`.
+5. Follow prompts in `.github/prompts/` in numeric order. The workflow includes product discovery, UX research, information architecture, visual exploration, wireframes, design system, architecture, risk predictions, design approval, contract freeze, scaffold and one-slice development.
+6. Do not implement UI until the design system and screen specifications are approved.
+7. After each approved slice, run independent QA and the phase gate before continuing.
+
+## Proposed product baseline
+
+- Inputs: uploads, authorized media URLs, cloud storage imports, watched folders and supported platform imports where terms and rights permit.
+- Processing: hybrid local + cloud AI.
+- AI providers under consideration: NVIDIA API Catalog, optional self-hosted NVIDIA NIM, Gemini, OpenAI, Anthropic, Groq, Deepgram, Ollama/Qwen and WhisperX.
 - Content profiles: Podcasts/Interviews, Educational/Technical, Gaming, Entertainment/Funny.
-- Outputs: vertical clips suitable for Instagram Reels and YouTube Shorts, plus configurable square/landscape exports where useful.
-- Publishing: manual approval, policy-based automatic publishing, and hybrid per-channel/per-category rules.
-- Platform publishing must use official APIs and authorized OAuth flows.
-- AutoShorts (https://github.com/JayWebtech/autoshorts) is an architecture/UX reference only until its licence is explicitly verified. Do not copy its source code or assume its import feature is a publishing API.
+- Outputs: vertical Reels/Shorts, plus square and original-aspect exports where useful.
+- Publishing: manual approval, opt-in automatic policy and hybrid per channel/category.
+- Channels: Instagram/Facebook Reels and YouTube Shorts using official APIs and valid account permissions.
+- Proposed application stack: Next.js/React/TypeScript, FastAPI, PostgreSQL, Redis/Celery, FFmpeg/FFprobe/OpenCV/PySceneDetect, local/Azure Blob storage and Docker.
+- Proposed design direction: premium creator workstation, dark-first editing environment, calm neutral surfaces, clear information hierarchy, restrained accent color, strong editing ergonomics and a responsive management experience. This is a design hypothesis, not an approved visual design.
 
-## Install in an existing repository
+## Design-first rule
 
-1. Back up or commit your current work.
-2. Copy the `.github/` folder from this kit into the root of your AI AutoClip Studio repository. Merge carefully if `.github/` already exists; do not overwrite existing workflows or instructions without reviewing the diff.
-3. Optionally copy `AGENTS.md` to your repository root. Merge it with an existing file rather than replacing it.
-4. Open the repository root in VS Code.
-5. Select the **Copilot** agent harness in the Chat/Agents view. Choose Agent mode.
-6. Check that the Workspace customizations show the agents, prompts and skills. Use Command Palette → `Chat: Open Customizations` to inspect them.
-7. Start a fresh Copilot session after installing or changing customizations.
+The UI process is intentionally separate from the backend architecture process:
 
-## Run the workflow in order
+1. User/job research and key workflows.
+2. Information architecture and navigation.
+3. Brand/visual direction exploration.
+4. Low-fidelity wireframes and page composition.
+5. Design system and component states.
+6. Interaction, motion, responsive and accessibility specification.
+7. Human design approval.
+8. Only then: frontend scaffold, component implementation and visual verification.
 
-Invoke these prompt files one at a time from Copilot Chat:
+Use `docs/design/` as the design source of truth. Do not invent screens or styling during implementation when approved design specifications exist. If the design proves incomplete, raise a design change request rather than improvising.
 
-1. `/00-project-discovery`
-2. `/01-product-requirements`
-3. `/02-architecture-design`
-4. `/03-outcome-risk-prediction`
-5. `/04-design-approval-gate`
-6. `/05-contracts-and-data-model`
-7. `/06-scaffold-only`
-8. `/07-slice-plan`
-9. `/08-implement-one-slice`
-10. `/09-independent-test-review`
-11. `/10-phase-gate-and-next-slice`
+## Important workflow gates
 
-After the foundation, use the feature prompts in order:
+- `APPROVE REQUIREMENTS v1`
+- `APPROVE UX v1`
+- `APPROVE VISUAL DIRECTION v1`
+- `APPROVE WIREFRAMES v1`
+- `APPROVE DESIGN SYSTEM v1`
+- `APPROVE DESIGN v1`
+- `APPROVE CONTRACTS v1`
+- `APPROVE SCAFFOLD v1`
+- `APPROVE SLICE <ID>`
 
-12. `/11-video-ingestion`
-13. `/12-transcription-and-alignment`
-14. `/13-ai-highlight-discovery`
-15. `/14-rendering-and-quality`
-16. `/15-clip-review-studio`
-17. `/16-social-publishing`
-18. `/17-scheduling-and-analytics`
-19. `/18-production-readiness`
+Approval must be explicit in the current conversation. A draft, prompt run, status report or silence is not approval.
 
-Do not run every prompt in one message. Each phase must finish with evidence and a gate report. The human owner approves each gate explicitly.
+## Placeholder scaffold status
 
-## Approval protocol
+The repository currently contains documentation, approved skills and a placeholder-only application structure. Placeholder scaffold rules:
 
-Copilot must stop at each approval gate. Use an exact approval message such as:
+- No provider, social platform or media worker call is implemented.
+- No database migration creates or mutates application state.
+- No package dependencies are approved or installed.
+- Backend modules that are not implemented raise `NotImplementedError` or expose an explicit disabled state.
+- Frontend folders contain no unapproved page/component implementation.
+- Docker and CI files are skeleton placeholders, not business integrations.
+- Vertical-slice implementation begins only after `APPROVE SLICE <ID>`.
 
-`APPROVE DESIGN v1`
+## VS Code setup
 
-or
+- Workspace instructions: `.github/copilot-instructions.md`
+- Root agent instructions: `AGENTS.md`
+- File-scoped instructions: `.github/instructions/`
+- Custom agents: `.github/agents/`
+- Skills: `.github/skills/<skill-name>/SKILL.md`
+- Reusable prompts: `.github/prompts/*.prompt.md`
 
-`APPROVE SLICE <ID>`
+In VS Code, open the Command Palette and run **Chat: Open Customizations** to inspect the discovered skills, agents and prompts. Start a new Copilot chat after adding or changing customizations. Exact UI labels can vary by VS Code release.
 
-Do not treat silence, a request for explanation, or a model's recommendation as approval. If a material requirement changes, revise the affected design artifacts and ask for approval again.
+## Design quality bar
 
-## Multi-model review
+- No generic dashboard template with decorative gradients and repetitive cards.
+- No arbitrary pixel-level styling without tokens or layout rules.
+- No icon-only actions without accessible names/tooltips where needed.
+- No fake metrics or fake processing states.
+- Every screen must specify loading, empty, error, success and permission/disabled states where applicable.
+- Every interactive control must have a working behavior or be explicitly marked as disabled/unavailable.
+- Use semantic tokens, consistent spacing/type scales, keyboard focus and reduced-motion support.
+- The Clip Studio is a productivity tool: optimize timeline readability, preview focus, editing precision and recoverability.
 
-Use Copilot as the main coordinator. For a second opinion, open the same reviewed artifacts in another supported model/harness (for example a Claude or Codex session) and ask it to act as an independent reviewer. Ask for findings only; do not let multiple agents modify the same files or branch concurrently. Reconcile disagreements in an Architecture Decision Record (ADR).
+## Third-party and licensing boundaries
 
-A model selected in the model picker does not necessarily change the agent harness. The harness determines which customization files and tools are loaded. Keep the primary session on the Copilot harness when relying on this `.github/` kit.
+SupoClip, AutoShorts and GTA VI Clip Desk are research references. Do not copy code, prompts, assets or substantial expressive text until exact applicable licenses and dependencies are reviewed. See `docs/14-LICENSING-AND-THIRD-PARTY.md`.
 
-## Important rules
+## Documentation map
 
-- The agent must inspect the repository before proposing changes.
-- No application code before design approval.
-- No production feature code during scaffold-only phase.
-- Implement one bounded vertical slice at a time.
-- Tests must be written or updated with every behavior change.
-- Never claim tests passed unless the command was executed and the result was inspected.
-- Do not silently change approved architecture.
-- Keep secrets out of source control and frontend code.
-- Verify changing API/model documentation before implementation; cite URLs and access dates in project docs.
-- Do not invent NVIDIA model IDs, modalities, context limits, GPU requirements, prices, or API compatibility. Verify live documentation.
-- Use authorized source media only. Respect platform terms, licensing, privacy and copyright.
+### Product and engineering
+
+- `docs/01-PRODUCT-REQUIREMENTS.md`
+- `docs/02-ARCHITECTURE.md`
+- `docs/03-DATA-MODEL.md`
+- `docs/04-API-CONTRACTS.md`
+- `docs/05-AI-PROVIDER-STRATEGY.md`
+- `docs/06-MEDIA-PIPELINE.md`
+- `docs/07-CLIP-STUDIO-UX.md`
+- `docs/08-PUBLISHING-AND-SCHEDULING.md`
+- `docs/09-ANALYTICS-AND-LEARNING.md`
+- `docs/10-SECURITY-PRIVACY-RIGHTS.md`
+- `docs/11-TESTING-STRATEGY.md`
+- `docs/12-DEPLOYMENT-OPERATIONS.md`
+- `docs/13-SUPOCLIP-RESEARCH.md`
+- `docs/14-LICENSING-AND-THIRD-PARTY.md`
+- `docs/15-RISKS-AND-PREDICTIONS.md`
+- `docs/16-IMPLEMENTATION-ROADMAP.md`
+- `docs/17-ACCEPTANCE-CRITERIA.md`
+
+### Design source of truth
+
+- `docs/design/00-DESIGN-OVERVIEW.md`
+- `docs/design/01-UX-RESEARCH.md`
+- `docs/design/02-INFORMATION-ARCHITECTURE.md`
+- `docs/design/03-BRAND-VISUAL-DIRECTION.md`
+- `docs/design/04-DESIGN-SYSTEM.md`
+- `docs/design/05-SCREEN-SPECIFICATIONS.md`
+- `docs/design/06-INTERACTION-AND-STATES.md`
+- `docs/design/07-ACCESSIBILITY.md`
+- `docs/design/08-RESPONSIVE-STRATEGY.md`
+- `docs/design/09-VISUAL-QA.md`
+- `docs/design/10-DESIGN-DECISIONS.md`
+
+### Engineering state
+
+- `docs/engineering/DECISIONS.md`
+- `docs/engineering/RISKS.md`
+- `docs/engineering/PHASE-STATUS.md`
+- `docs/engineering/CHANGELOG-DEV.md`
+- `docs/engineering/adr/`
+
+## Disclaimer
+
+This pack is a planning and customization starter. It does not prove that the repository has been discovered, the proposed stack is compatible, the APIs are approved, the visual design is approved, or any feature is implemented. Verify all current model IDs, API permissions, platform rules, dependencies and licenses during the relevant phase.
+
+
+## Expanded Flow AI + Quality Engineering system (v3)
+
+The v3 pack adds explicit requirements engineering, verification/validation and Quality Engineering controls. It is not only a list of development prompts. The intended loop is:
+
+`Discover → Elicit requirements → Baseline PRD/ACs → UX/design → Architecture → Risks/predictions → QE strategy → Approve → Freeze contracts → Scaffold → Slice plan → Implement one slice → Verify → Validate → QE gate → Human acceptance → Next slice`.
+
+### New workflow skills
+- `requirements-elicitation`, `requirements-engineering`, `acceptance-criteria`, `requirements-traceability`
+- `risk-based-testing`, `test-strategy`, `test-case-design`, `test-automation`
+- `verification-validation`, `defect-management`, `chunked-implementation`, `implementation-loop`
+- `qe-orchestration`, `release-readiness`, `change-impact-analysis`
+
+### New specialist agents
+- Requirements Engineer
+- QE Architect
+- Test Automation Engineer
+- Verification Engineer
+- Defect Triage
+- Delivery Orchestrator
+
+### New sequential prompts
+Prompts `24`–`40` cover requirements elicitation and baselining, traceability, QE strategy, test design, slice planning, test-first implementation, independent verification, user validation, defect triage, slice/phase gates, regression impact, release readiness and workflow status.
+
+### Evidence and templates
+See `docs/engineering/DEVELOPMENT-WORKFLOW.md`, `REQUIREMENTS-ENGINEERING.md`, `REQUIREMENTS-TRACEABILITY.md`, `QUALITY-ENGINEERING-STRATEGY.md`, `VERIFICATION-VALIDATION-PLAN.md`, `TEST-PLAN-TEMPLATE.md`, `DEFINITION-OF-READY-DONE.md`, `DELIVERY-SLICE-PLAYBOOK.md`, `DEFECT-MANAGEMENT.md`, `APPROVAL-LOG.md`, `DEFECT-LOG.md` and `REQUIREMENTS-TRACEABILITY.csv`.
+
+Use `WORKFLOW-QUICKSTART.md` as the single flow guide. Start from discovery and do not jump directly to implementation.

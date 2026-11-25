@@ -1,38 +1,17 @@
-# Phase 00 — Repository and Environment Discovery
+---
+name: project-discovery
+description: Read-only inventory of the existing ClipYantra repository and constraints.
+agent: architect
+---
 
-Use the `engineering-gates` skill. This phase is READ-ONLY.
+Perform Phase 0 discovery only.
 
-Inspect the current repository and development environment for AI AutoClip Studio. Do not create, modify, delete or format files. Do not install dependencies or call paid APIs.
+1. Read `AGENTS.md`, `.github/copilot-instructions.md` and documentation index.
+2. Inspect `git status --short`, branch, recent commits and repository tree.
+3. Inspect existing source, configuration, dependencies, migrations, tests, CI, Docker and deployment files.
+4. Identify actual GPU/hardware only from evidence available in the environment; if unavailable, list required commands for the owner to run.
+5. Compare existing implementation with `docs/01-PRODUCT-REQUIREMENTS.md` and `docs/02-ARCHITECTURE.md`.
+6. Identify conflicts, duplicates, unfinished integrations and current test commands.
+7. Produce `docs/DISCOVERY-REPORT.md` only if documentation file creation is authorized; otherwise return the report in chat.
 
-Inspect:
-- Git status, current branch, recent commits, uncommitted changes.
-- Existing frontend/backend/frameworks and folder conventions.
-- Existing database, queue, worker, storage and deployment configuration.
-- Existing AI providers, prompts, video pipeline, integrations, tests and docs.
-- Existing `.github` customizations and any AGENTS.md.
-- Available runtimes/versions and test/lint/type-check commands.
-- NVIDIA GPU visibility if available (`nvidia-smi` only; do not install drivers or alter environment).
-- Environment variable names only; never print secret values.
-- The supplied AutoShorts repository as reference only; verify repository state and licence, and do not copy code.
-
-Product baseline:
-- Mixed authorized video sources.
-- Hybrid local/cloud AI.
-- NVIDIA API Catalog and optional NIM, Gemini, OpenAI, Anthropic, Groq, Deepgram, Ollama/Qwen and WhisperX.
-- Content categories: podcasts/interviews, educational/technical, gaming, entertainment/funny.
-- Instagram Reels and YouTube Shorts.
-- Manual, policy-based automatic and hybrid publishing.
-
-Return:
-1. Repository inventory with paths.
-2. Existing architecture summary.
-3. Working vs incomplete capabilities.
-4. Detected stack/runtime/hardware facts.
-5. Current test commands and baseline results only if actually run.
-6. Risks, unknowns and constraints.
-7. Recommended next phase.
-
-Do not propose a rewrite before understanding what already exists. End `GATE: DISCOVERY COMPLETE — NO FILES CHANGED`.
-
-
-Global rules: Follow `.github/copilot-instructions.md` and the relevant skills. Inspect existing repository state before edits. Do not invent API/model facts. Keep the scope of this prompt only. Do not advance to the next phase automatically. End with a gate report and explicit status.
+STRICT: read-only. Do not install packages, edit files, scaffold, modify migrations, run destructive commands or contact production services. Finish with `NEEDS APPROVAL` and ask for one next decision.

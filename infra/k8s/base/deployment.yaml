@@ -1,0 +1,202 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipyantra-backend
+  labels:
+    app: clipyantra
+    component: backend
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: clipyantra
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: clipyantra
+        component: backend
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: clipyantra-backend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: backend
+          image: clipyantra/backend:v1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: clipyantra-config
+            - secretRef:
+                name: clipyantra-secrets
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: media-storage
+              mountPath: /media
+      volumes:
+        - name: media-storage
+          persistentVolumeClaim:
+            claimName: clipyantra-media-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipyantra-frontend
+  labels:
+    app: clipyantra
+    component: frontend
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: clipyantra
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: clipyantra
+        component: frontend
+        version: v1
+    spec:
+      serviceAccountName: clipyantra-frontend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: frontend
+          image: clipyantra/frontend:v1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: clipyantra-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipyantra-worker
+  labels:
+    app: clipyantra
+    component: worker
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: clipyantra
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: clipyantra
+        component: worker
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: clipyantra-worker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: worker
+          image: clipyantra/worker:v1.0.0
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: clipyantra-config
+            - secretRef:
+                name: clipyantra-secrets
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CELERY_CONCURRENCY
+              value: "4"
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "4000m"
+              memory: "8Gi"
+          volumeMounts:
+            - name: media-storage
+              mountPath: /media
+      volumes:
+        - name: media-storage
+          persistentVolumeClaim:
+            claimName: clipyantra-media-pvc

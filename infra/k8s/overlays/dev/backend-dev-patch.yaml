@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-clipyantra-backend
+spec:
+  template:
+    spec:
+      containers:
+        - name: backend
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@dev-clipyantra-postgres:5432/clipyantra_dev
+            - name: REDIS_URL
+              value: redis://dev-clipyantra-redis:6379/0
+            - name: DEBUG
+              value: "true"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5

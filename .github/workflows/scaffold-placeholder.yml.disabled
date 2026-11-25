@@ -1,0 +1,13 @@
+# Placeholder CI workflow skeleton.
+# This file is intentionally disabled because it has no .yml suffix.
+name: Scaffold Validation Placeholder
+
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "No implementation validation is approved yet"

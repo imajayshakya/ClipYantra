@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: clipyantra-staging
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+
+images:
+  - name: clipyantra/backend
+    newTag: staging-latest
+  - name: clipyantra/frontend
+    newTag: staging-latest
+  - name: clipyantra/worker
+    newTag: staging-latest
+
+configMapGenerator:
+  - name: clipyantra-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=info
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - FRONTEND_URL=https://staging.clipyantra.com
+      - CORS_ORIGINS=https://staging.clipyantra.com
+
+replicas:
+  - name: clipyantra-backend
+    count: 2
+  - name: clipyantra-frontend
+    count: 2
+  - name: clipyantra-worker
+    count: 2
+
+patchesStrategicMerge:
+  - backend-staging-patch.yaml
+  - frontend-staging-patch.yaml
+  - worker-staging-patch.yaml

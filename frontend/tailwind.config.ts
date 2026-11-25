@@ -1,0 +1,171 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
+    './hooks/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Brand colors
+        brand: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        },
+        // Surface colors
+        surface: {
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
+          950: '#09090b',
+        },
+        // Semantic colors
+        success: {
+          light: '#22c55e',
+          DEFAULT: '#16a34a',
+          dark: '#15803d',
+        },
+        warning: {
+          light: '#facc15',
+          DEFAULT: '#eab308',
+          dark: '#ca8a04',
+        },
+        error: {
+          light: '#f87171',
+          DEFAULT: '#ef4444',
+          dark: '#dc2626',
+        },
+        // Background
+        background: {
+          primary: 'var(--background-primary)',
+          secondary: 'var(--background-secondary)',
+          tertiary: 'var(--background-tertiary)',
+        },
+        // Text
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          inverse: 'var(--text-inverse)',
+        },
+        // Border
+        border: {
+          DEFAULT: 'var(--border-default)',
+          strong: 'var(--border-strong)',
+          focus: 'var(--border-focus)',
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'display-xl': ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        'display-lg': ['clamp(2rem, 4vw, 3rem)', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+        'display-md': ['clamp(1.5rem, 3vw, 2.25rem)', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
+        'display-sm': ['clamp(1.25rem, 2.5vw, 1.75rem)', { lineHeight: '1.25', letterSpacing: '-0.01em' }],
+        'heading-xl': ['1.5rem', { lineHeight: '1.3', letterSpacing: '-0.01em' }],
+        'heading-lg': ['1.25rem', { lineHeight: '1.35', letterSpacing: '-0.01em' }],
+        'heading-md': ['1.125rem', { lineHeight: '1.4', letterSpacing: '0' }],
+        'heading-sm': ['1rem', { lineHeight: '1.45', letterSpacing: '0' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.6' }],
+        'body-md': ['1rem', { lineHeight: '1.6' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.5' }],
+        'body-xs': ['0.75rem', { lineHeight: '1.5' }],
+        'caption': ['0.75rem', { lineHeight: '1.5' }],
+        'overline': ['0.625rem', { lineHeight: '1.5', letterSpacing: '0.05em', textTransform: 'uppercase' }],
+      },
+      spacing: {
+        '0': '0',
+        '1': '0.25rem',
+        '2': '0.5rem',
+        '3': '0.75rem',
+        '4': '1rem',
+        '5': '1.25rem',
+        '6': '1.5rem',
+        '8': '2rem',
+        '10': '2.5rem',
+        '12': '3rem',
+        '16': '4rem',
+        '20': '5rem',
+        '24': '6rem',
+        '32': '8rem',
+      },
+      borderRadius: {
+        'none': '0',
+        'sm': '0.25rem',
+        'DEFAULT': '0.375rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'xl': '1rem',
+        '2xl': '1.5rem',
+        'full': '9999px',
+      },
+      boxShadow: {
+        'xs': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        'sm': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'DEFAULT': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'md': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        'lg': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        'xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+        'inner': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+        'focus': '0 0 0 3px rgb(14 165 233 / 0.4)',
+      },
+      transitionDuration: {
+        'fast': '150ms',
+        'DEFAULT': '200ms',
+        'slow': '300ms',
+      },
+      transitionTimingFunction: {
+        'DEFAULT': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'in': 'cubic-bezier(0.4, 0, 1, 1)',
+        'out': 'cubic-bezier(0, 0, 0.2, 1)',
+        'in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      zIndex: {
+        'hide': '-1',
+        'auto': 'auto',
+        'base': '0',
+        'dropdown': '1000',
+        'sticky': '1100',
+        'overlay': '1200',
+        'modal': '1300',
+        'popover': '1400',
+        'toast': '1500',
+        'tooltip': '1600',
+      },
+      screens: {
+        'xs': '480px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+        'editor': '1440px',
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

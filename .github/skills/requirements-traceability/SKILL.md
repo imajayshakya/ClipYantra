@@ -1,0 +1,3 @@
+# Requirements Traceability Skill
+
+Maintain bidirectional traceability: requirement → UX/architecture decision → API/data component → implementation slice/PR → test case → execution evidence → release. Use stable IDs, not title matching. Detect orphan requirements, tests with no requirement, changed criteria without reapproval and code changes with no linked acceptance criteria. Maintain `docs/engineering/REQUIREMENTS-TRACEABILITY.csv`. Fields: requirement_id, acceptance_criteria_id, design_ref, architecture_ref, contract_ref, slice_id, test_id, latest_result, evidence_ref, status, notes. Do not mark coverage complete when the latest test was not run.

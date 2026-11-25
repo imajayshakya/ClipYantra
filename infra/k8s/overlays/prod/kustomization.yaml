@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: clipyantra
+
+resources:
+  - ../../base
+
+images:
+  - name: clipyantra/backend
+    newTag: v1.0.0
+  - name: clipyantra/frontend
+    newTag: v1.0.0
+  - name: clipyantra/worker
+    newTag: v1.0.0
+
+configMapGenerator:
+  - name: clipyantra-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - FRONTEND_URL=https://clipyantra.com
+      - CORS_ORIGINS=https://clipyantra.com,https://www.clipyantra.com
+
+replicas:
+  - name: clipyantra-backend
+    count: 3
+  - name: clipyantra-frontend
+    count: 3
+  - name: clipyantra-worker
+    count: 4
+
+patchesStrategicMerge:
+  - backend-prod-patch.yaml
+  - frontend-prod-patch.yaml
+  - worker-prod-patch.yaml
+  - hpa.yaml

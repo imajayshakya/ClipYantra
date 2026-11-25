@@ -1,0 +1,160 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'infra/terraform/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to plan'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      TF_VERSION: "1.9.*"
+      AWS_REGION: "us-east-1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Initialize Terraform (dev)
+        if: github.event.inputs.environment == 'dev' || github.event.inputs.environment == ''
+        working-directory: ./infra/terraform/environments/dev
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-dev" \
+                        -backend-config="key=dev/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Initialize Terraform (staging)
+        if: github.event.inputs.environment == 'staging'
+        working-directory: ./infra/terraform/environments/staging
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-staging" \
+                        -backend-config="key=staging/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Initialize Terraform (prod)
+        if: github.event.inputs.environment == 'prod'
+        working-directory: ./infra/terraform/environments/prod
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-prod" \
+                        -backend-config="key=prod/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Validate Terraform
+        working-directory: ./infra/terraform
+        run: |
+          terraform validate
+
+      - name: Format Check
+        working-directory: ./infra/terraform
+        run: |
+          terraform fmt -check -recursive
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1
+        with:
+          working_directory: ./infra/terraform
+
+      - name: Terraform Plan (dev)
+        if: github.event.inputs.environment == 'dev' || github.event.inputs.environment == ''
+        id: plan-dev
+        working-directory: ./infra/terraform/environments/dev
+        run: |
+          terraform plan -out=tfplan -no-color
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Terraform Plan (staging)
+        if: github.event.inputs.environment == 'staging'
+        id: plan-staging
+        working-directory: ./infra/terraform/environments/staging
+        run: |
+          terraform plan -out=tfplan -no-color
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Terraform Plan (prod)
+        if: github.event.inputs.environment == 'prod'
+        id: plan-prod
+        working-directory: ./infra/terraform/environments/prod
+        run: |
+          terraform plan -out=tfplan -no-color
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            infra/terraform/environments/*/tfplan
+            infra/terraform/environments/*/plan.txt
+          retention-days: 7
+
+      - name: Comment PR with Plan Summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Find plan file
+            const planFiles = [
+              'infra/terraform/environments/dev/plan.txt',
+              'infra/terraform/environments/staging/plan.txt',
+              'infra/terraform/environments/prod/plan.txt'
+            ];
+            
+            let planContent = '';
+            for (const file of planFiles) {
+              if (fs.existsSync(file)) {
+                planContent = fs.readFileSync(file, 'utf8');
+                break;
+              }
+            }
+            
+            if (!planContent) {
+              console.log('No plan file found');
+              return;
+            }
+            
+            // Extract summary
+            const summaryMatch = planContent.match(/Plan: (\d+) to add, (\d+) to change, (\d+) to destroy/);
+            let summary = 'No changes';
+            if (summaryMatch) {
+              summary = `Plan: ${summaryMatch[1]} to add, ${summaryMatch[2]} to change, ${summaryMatch[3]} to destroy`;
+            }
+            
+            // Create comment
+            const comment = `## Terraform Plan Summary\n\n${summary}\n\n<details><summary>Full Plan Output</summary>\n\n\`\`\`\n${planContent.slice(0, 6000)}\n\`\`\`\n\n</details>`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -1,0 +1,143 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      plan_artifact:
+        description: 'Plan artifact name (optional)'
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["Terraform Plan"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main')
+    permissions:
+      contents: read
+    env:
+      TF_VERSION: "1.9.*"
+      AWS_REGION: "us-east-1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download Plan Artifact
+        if: github.event_name == 'workflow_run' || inputs.plan_artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.plan_artifact || 'terraform-plan' }}
+          path: ./terraform-plan
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            # Try to determine from artifact or default to dev
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Initialize Terraform (dev)
+        if: steps.env.outputs.environment == 'dev'
+        working-directory: ./infra/terraform/environments/dev
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-dev" \
+                        -backend-config="key=dev/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Initialize Terraform (staging)
+        if: steps.env.outputs.environment == 'staging'
+        working-directory: ./infra/terraform/environments/staging
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-staging" \
+                        -backend-config="key=staging/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Initialize Terraform (prod)
+        if: steps.env.outputs.environment == 'prod'
+        working-directory: ./infra/terraform/environments/prod
+        run: |
+          terraform init -backend-config="bucket=clipyantra-terraform-state-prod" \
+                        -backend-config="key=prod/terraform.tfstate" \
+                        -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Apply Terraform Plan (dev)
+        if: steps.env.outputs.environment == 'dev'
+        working-directory: ./infra/terraform/environments/dev
+        run: |
+          if [ -f "../../../../terraform-plan/tfplan" ]; then
+            terraform apply -auto-approve "../../../../terraform-plan/tfplan"
+          else
+            terraform apply -auto-approve
+          fi
+
+      - name: Apply Terraform Plan (staging)
+        if: steps.env.outputs.environment == 'staging'
+        working-directory: ./infra/terraform/environments/staging
+        run: |
+          if [ -f "../../../../terraform-plan/tfplan" ]; then
+            terraform apply -auto-approve "../../../../terraform-plan/tfplan"
+          else
+            terraform apply -auto-approve
+          fi
+
+      - name: Apply Terraform Plan (prod)
+        if: steps.env.outputs.environment == 'prod'
+        working-directory: ./infra/terraform/environments/prod
+        run: |
+          if [ -f "../../../../terraform-plan/tfplan" ]; then
+            terraform apply -auto-approve "../../../../terraform-plan/tfplan"
+          else
+            terraform apply -auto-approve
+          fi
+
+      - name: Output Results
+        if: always()
+        working-directory: ./infra/terraform/environments/${{ steps.env.outputs.environment }}
+        run: |
+          terraform output -json > outputs.json
+          cat outputs.json
+
+      - name: Upload Outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-${{ steps.env.outputs.environment }}
+          path: infra/terraform/environments/${{ steps.env.outputs.environment }}/outputs.json
+          retention-days: 30
+
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "✅ Terraform apply completed successfully for ${{ steps.env.outputs.environment }}"
+          
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "❌ Terraform apply failed for ${{ steps.env.outputs.environment }}"

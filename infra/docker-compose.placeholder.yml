@@ -1,0 +1,16 @@
+# Placeholder only. Do not start this file in the placeholder phase.
+# Service definitions reserve the approved Docker topology.
+
+name: clipyantra-placeholder
+
+services:
+  api:
+    profiles: ["disabled"]
+    build:
+      context: ../backend
+  web:
+    profiles: ["disabled"]
+  postgres:
+    profiles: ["disabled"]
+  redis:
+    profiles: ["disabled"]

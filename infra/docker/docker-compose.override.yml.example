@@ -1,0 +1,159 @@
+# ClipYantra Docker Compose Override Example
+# Copy this file to docker-compose.override.yml and customize for your local development
+# This file is gitignored by default
+
+version: '3.8'
+
+services:
+  # =========================================================================
+  # Backend - Local Development Override
+  # =========================================================================
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../../backend:/app
+      - ../../backend/app:/app/app
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Debugpy port
+    command: >
+      sh -c "pip install debugpy && python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # =========================================================================
+  # Frontend - Local Development Override
+  # =========================================================================
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  # =========================================================================
+  # Workers - Local Development Override
+  # =========================================================================
+  worker:
+    build:
+      context: ../../workers
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../../workers:/app
+      - ../../workers/app:/app/app
+      - clipyantra-worker-data:/app/data
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - CELERY_WORKER_CONCURRENCY=2
+    ports:
+      - "8001:8000"  # Health/metrics port
+      - "9090:9090"  # Prometheus metrics
+    command: >
+      sh -c "pip install debugpy && celery -A app.celery_app worker --loglevel=debug --concurrency=2 --queues=ingestion,transcription,analysis,rendering,default"
+
+  # =========================================================================
+  # Worker Beat (Periodic Tasks) - Optional
+  # =========================================================================
+  worker-beat:
+    build:
+      context: ../../workers
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../../workers:/app
+      - ../../workers/app:/app/app
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    command: celery -A app.celery_app beat --loglevel=debug
+    depends_on:
+      - redis
+      - postgres
+
+  # =========================================================================
+  # Database - Local Override (expose port for GUI tools)
+  # =========================================================================
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+  # =========================================================================
+  # Redis - Local Override (expose port for GUI tools)
+  # =========================================================================
+  redis:
+    ports:
+      - "6379:6379"
+
+  # =========================================================================
+  # Additional Services for Local Development
+  # =========================================================================
+  
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    profiles:
+      - tools
+
+  # MinIO for S3-compatible storage
+  minio:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - clipyantra-minio-data:/data
+    profiles:
+      - tools
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:8.4
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@clipyantra.local
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - clipyantra-pgadmin-data:/var/lib/pgadmin
+    profiles:
+      - tools
+
+  # Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    profiles:
+      - tools
+
+volumes:
+  clipyantra-worker-data:
+  clipyantra-minio-data:
+  clipyantra-pgadmin-data:

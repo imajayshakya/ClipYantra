@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-clipyantra-worker
+spec:
+  template:
+    spec:
+      containers:
+        - name: worker
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@dev-clipyantra-postgres:5432/clipyantra_dev
+            - name: REDIS_URL
+              value: redis://dev-clipyantra-redis:6379/0
+            - name: DEBUG
+              value: "true"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"

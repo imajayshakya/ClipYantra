@@ -1,0 +1,1 @@
+"""ClipYantra backend placeholder package."""

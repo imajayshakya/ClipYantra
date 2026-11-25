@@ -1,0 +1,29 @@
+# Engineering Decisions Log
+
+| ID | Date | Decision | Status | Rationale / references |
+|---|---|---|---|---|
+| D-001 | 2026-11-22 | Treat SupoClip as architecture/product reference only; no source copying pending licence review | PROPOSED | README/root LICENSE show AGPL-3.0; app-guide wording is inconsistent |
+| D-002 | 2026-11-22 | Keep Redis + Celery as proposed queue baseline; do not switch to ARQ based solely on SupoClip | PROPOSED | Existing project instructions select Celery; compare operationally before change |
+| D-003 | 2026-11-22 | Use one authoritative backend persistence layer; proposed SQLAlchemy/Alembic | PROPOSED | Avoid dual ORM/schema ownership |
+| D-004 | 2026-11-22 | Use SSE or equivalent for live progress with durable status refetch | PROPOSED | SupoClip architecture documents SSE progress events |
+| D-005 | 2026-11-22 | Generated clips immutable; edits create versioned drafts and typed operation history | PROPOSED | Better reproducibility and safe editing |
+| D-006 | 2026-11-22 | Requirements baseline created with 68 requirements (7 BR, 38 FR, 10 NFR, 8 CON, 5 OUT) and 24 acceptance criteria in session DB | **APPROVED** | Baseline derived from PRD v0.1 + discovery hardware constraints; **APPROVE REQUIREMENTS v1** ✓ |
+| D-007 | 2026-11-22 | Requirements review completed: all 68 requirements confirmed; 3 clarifications (FR-028 schema, FR-050 capability matrix, NFR-010 test targets); 5 open decisions (OUT-001 to OUT-005) for product owner; 3 conflicts resolved | **APPROVED** | Review documented in REQUIREMENTS-REVIEW.md; **APPROVE REQUIREMENTS REVIEW v1** ✓ |
+| D-008 | 2026-11-22 | UX research completed: 5 personas as hypotheses, 8 JTBD, 13-stage journey, 10 research questions, 9 success measures, 3 blocking OUT decisions (OUT-001, OUT-002, OUT-003) | **APPROVED** | Research in 01-UX-RESEARCH.md; **APPROVE UX v1** ✓ |
+| D-009 | 2026-11-22 | Information Architecture completed v1: 9 core objects with clear user-facing distinctions, 10 primary nav items, 23 routes, 4 primary flows with failure/recovery, contextual navigation patterns (breadcrumbs, context bar, search persistence, deep links), validated naming conventions | **APPROVED** | IA in 02-INFORMATION-ARCHITECTURE.md; **APPROVE IA v1** ✓ |
+| D-010 | 2026-11-22 | Product Owner Decision v1: OUT-001 (Self-hosted MVP, Docker, single workspace, SaaS-ready), OUT-002 (All four import connectors with priority), OUT-003 (Both Instagram/Facebook Reels and YouTube Shorts in MVP), RQ-4 (Desktop-first MVP, tablet supports review/approval), FR-050 (Hierarchical provider routing: workspace → profile → job overrides) | **APPROVED** | Resolves 5 open decisions; documented in 02-INFORMATION-ARCHITECTURE.md and this log; **APPROVE VISUAL DIRECTION v1** also granted |
+| D-011 | 2026-11-23 | Phase 05 wireframes approved: low-fidelity specs cover the shared shell and core route families, RQ-4 tablet behavior and desktop-only full timeline editing | **APPROVED** | Recorded in 05-SCREEN-SPECIFICATIONS.md; explicit approval: **APPROVE WIREFRAMES v1** |
+| D-012 | 2026-11-23 | Phase 06 design system approved: semantic tokens, component inventory, density tiers, state contracts and dependency assessment | **APPROVED** | Recorded in 04-DESIGN-SYSTEM.md; explicit approval: **APPROVE DESIGN SYSTEM v1** |
+| D-013 | 2026-11-23 | Single-workspace, Docker-based, SaaS-ready self-hosted deployment architecture for MVP | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-001 in 02-ARCHITECTURE.md |
+| D-014 | 2026-11-23 | PostgreSQL remains authoritative workflow state while Redis/Celery remains execution infrastructure | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-002 in 02-ARCHITECTURE.md |
+| D-014A | 2026-11-23 | StorageProvider abstraction will support local filesystem and Azure Blob object storage | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-003 in 02-ARCHITECTURE.md |
+| D-015 | 2026-11-23 | ImportAdapter registry will support local uploads, authorized URLs, Azure Blob, watched folders and authorized platforms in priority order | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-004 in 02-ARCHITECTURE.md |
+| D-016 | 2026-11-23 | Provider routing will resolve workspace default, then content-profile override, then per-job override with capability validation | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-005 in 02-ARCHITECTURE.md |
+| D-017 | 2026-11-23 | Meta and YouTube publishing will use separate official OAuth adapters with idempotency and reconciliation | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-008 in 02-ARCHITECTURE.md |
+| D-018 | 2026-11-23 | Tablet workflows cover preview/review/approval/calendar/analytics; full timeline editing remains desktop-first | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-009 in 02-ARCHITECTURE.md |
+| D-019 | 2026-11-23 | SSE plus durable refetch will provide realtime job progress | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-006 in 02-ARCHITECTURE.md |
+| D-020 | 2026-11-23 | Transactional outbox, idempotency and reconciliation are required for publish/external side effects | **APPROVED** | Explicit **APPROVE ARCHITECTURE v1**; ADR-010 in 02-ARCHITECTURE.md |
+| D-021 | 2026-11-23 | Contract freeze baseline approved across entities, migrations, Pydantic/API, SSE, state machines, source maps, storage, idempotency, outbox and leases | **APPROVED** | Explicit **APPROVE CONTRACTS v1**; CONTRACT-FREEZE.md |
+| D-022 | 2026-11-23 | Placeholder scaffold authorization limited to folders, empty interfaces, settings/health skeleton, migrations/CI/Docker skeleton and README updates | **APPROVED** | Explicit **APPROVE SCAFFOLD v1**; no dependencies or business behavior |
+
+Add decisions only after discussion. Material decisions need linked ADR and approval token.
