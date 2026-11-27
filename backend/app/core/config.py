@@ -129,6 +129,29 @@ class Settings(BaseSettings):
     chunk_duration_seconds: int = 1800  # 30 minutes
     chunk_overlap_seconds: int = 30
 
+    # Scene Detection (ING-004)
+    scene_default_threshold: float = Field(
+        default=0.3,
+        ge=0.1,
+        le=1.0,
+        description="Default scene detection threshold (0.1-1.0)",
+    )
+    scene_min_duration_ms: int = Field(
+        default=1000,
+        ge=500,
+        description="Minimum scene duration in milliseconds",
+    )
+    keyframe_default_format: str = Field(
+        default="jpeg",
+        description="Default keyframe format (jpeg or png)",
+    )
+    keyframe_default_quality: int = Field(
+        default=80,
+        ge=50,
+        le=100,
+        description="Default keyframe quality (50-100)",
+    )
+
     # Logging
     log_level: str = "INFO"
     log_format: str = "json"
@@ -375,6 +398,23 @@ class Settings(BaseSettings):
     @property
     def CHUNK_OVERLAP_SECONDS(self) -> int:
         return self.chunk_overlap_seconds
+
+        # Scene Detection properties (ING-004)
+        @property
+        def SCENE_DEFAULT_THRESHOLD(self) -> float:
+            return self.scene_default_threshold
+
+        @property
+        def SCENE_MIN_DURATION_MS(self) -> int:
+            return self.scene_min_duration_ms
+
+        @property
+        def KEYFRAME_DEFAULT_FORMAT(self) -> str:
+            return self.keyframe_default_format
+
+        @property
+        def KEYFRAME_DEFAULT_QUALITY(self) -> int:
+            return self.keyframe_default_quality
 
     @field_validator("database_url", mode="before")
     @classmethod

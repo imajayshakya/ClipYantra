@@ -9,7 +9,7 @@ from app.api.schemas import (
     RightsDeclaration,
     UploadSessionCreateRequest,
 )
-from app.db.models import Base
+from app.db.models import Base, SourceRecord
 from app.db.source_repository import (
     IdempotencyConflictError,
     RightsBlockedError,
@@ -135,8 +135,6 @@ def test_source_is_readable_in_a_separate_session(session_factory):
     )
 
     with session_factory() as session:
-        from backend.app.db.models import SourceRecord
-
         row = session.get(SourceRecord, created.source_id)
         assert row is not None
         assert row.title == "Episode 42"

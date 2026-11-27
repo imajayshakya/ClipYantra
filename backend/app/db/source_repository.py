@@ -15,7 +15,7 @@ from app.api.schemas import (
     SourceType,
     UploadSessionCreateRequest,
 )
-from app.db.models import MediaAsset, SourceRecord, SourceRights, UploadSession
+from app.db.models import MediaAsset, SourceRecord, SourceRights, UploadSession, Scene
 
 
 class IdempotencyConflictError(RuntimeError):
@@ -376,3 +376,115 @@ class SourceRepository:
 def create_source_repository(engine) -> SourceRepository:
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     return SourceRepository(factory)
+
+
+# ING-004: Scene repository methods
+
+    def create_scene(self, scene: Scene) -> Scene:
+        """Create a new scene record."""
+        try:
+            with self._session_factory() as session:
+                session.add(scene)
+                try:
+                    session.commit()
+                except IntegrityError as exc:
+                    session.rollback()
+                    raise SourceStoreUnavailableError(
+                        "Scene already exists."
+                    ) from exc
+                session.refresh(scene)
+                return scene
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def get_scene(self, scene_id: str) -> Scene | None:
+        """Get scene by ID."""
+        try:
+            with self._session_factory() as session:
+                return session.get(Scene, scene_id)
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def list_scenes(
+        self,
+        media_asset_id: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Scene], int]:
+        """List scenes for a media asset with pagination."""
+        try:
+            with self._session_factory() as session:
+                # Get total count
+                total = session.scalar(
+                    select(Scene)
+                    .where(Scene.media_asset_id == media_asset_id)
+                    .count()
+                )
+                # Get paginated results
+                offset = (page - 1) * page_size
+                scenes = session.scalars(
+                    select(Scene)
+                    .where(Scene.media_asset_id == media_asset_id)
+                    .order_by(Scene.start_ms)
+                    .offset(offset)
+                    .limit(page_size)
+                ).all()
+                return list(scenes), total or 0
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def update_scene_keyframe(
+        self,
+        scene_id: str,
+        keyframe_asset_id: str,
+    ) -> bool:
+        """Update scene keyframe asset ID."""
+        try:
+            with self._session_factory() as session:
+                scene = session.get(Scene, scene_id)
+                if scene is None:
+                    return False
+                scene.keyframe_asset_id = keyframe_asset_id
+                session.commit()
+                return True
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def delete_scenes_for_media_asset(self, media_asset_id: str) -> int:
+        """Delete all scenes for a media asset. Returns count of deleted scenes."""
+        try:
+            with self._session_factory() as session:
+                from sqlalchemy import delete
+                result = session.execute(
+                    delete(Scene).where(Scene.media_asset_id == media_asset_id)
+                )
+                session.commit()
+                return result.rowcount
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def get_scenes_by_detection_job(self, detection_job_id: str) -> list[Scene]:
+        """Get all scenes for a detection job."""
+        try:
+            with self._session_factory() as session:
+                return list(
+                    session.scalars(
+                        select(Scene)
+                        .where(Scene.detection_job_id == detection_job_id)
+                        .order_by(Scene.start_ms)
+                    ).all()
+                )
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc

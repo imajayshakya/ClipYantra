@@ -1,10 +1,12 @@
-"""ING-001/ING-002 SQLAlchemy source/upload/media entities."""
+"""ING-001/ING-002/ING-004 SQLAlchemy source/upload/media/scene entities."""
 
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, BigInteger, Integer, Numeric, Boolean
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, BigInteger, Integer, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base
 
 
 def utc_now() -> datetime:
@@ -13,10 +15,6 @@ def utc_now() -> datetime:
 
 def new_uuid() -> str:
     return str(uuid4())
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 class SourceRecord(Base):
@@ -251,3 +249,53 @@ class MediaAsset(Base):
     )
 
     source: Mapped["SourceRecord"] = relationship(back_populates="media_asset")
+    scenes: Mapped[list["Scene"]] = relationship(
+        foreign_keys="Scene.media_asset_id",
+        back_populates="media_asset",
+        cascade="all, delete-orphan",
+        order_by="Scene.start_ms",
+    )
+
+
+class Scene(Base):
+    __tablename__ = "scenes"
+    __table_args__ = (
+        Index("ix_scenes_media_asset", "media_asset_id"),
+        Index("ix_scenes_time_range", "media_asset_id", "start_ms", "end_ms"),
+        Index("ix_scenes_detection_job", "detection_job_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    media_asset_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("media_assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    start_ms: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    end_ms: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    keyframe_asset_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("media_assets.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    labels: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    detection_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+        onupdate=utc_now,
+    )
+
+    media_asset: Mapped["MediaAsset"] = relationship(
+        foreign_keys=[media_asset_id],
+        back_populates="scenes",
+    )
+    keyframe_asset: Mapped["MediaAsset | None"] = relationship(
+        foreign_keys=[keyframe_asset_id],
+    )
