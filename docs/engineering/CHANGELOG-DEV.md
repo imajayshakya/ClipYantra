@@ -1,5 +1,24 @@
 # Development Change Log
 
+## 2026-11-28 — ING-004 Scene Detection model/repository/config/migration
+
+- **APPROVE SLICE ING-004** and **APPROVE SLICE PROC-001** received from product owner.
+- Created detailed slice plans: `docs/slices/ING-004.md` (16KB) and `docs/slices/PROC-001.md` (24KB)
+- Created branch `feature/ING-004-scene-detection` from main
+- Implemented Scene SQLAlchemy model with full schema:
+  - Fields: id, media_asset_id, start_ms, end_ms, keyframe_asset_id, labels (JSONB), detection_job_id, created_at, updated_at
+  - Indexes: media_asset_id, (media_asset_id, start_ms, end_ms), detection_job_id
+  - Foreign keys: media_asset_id → media_assets.id (CASCADE), keyframe_asset_id → media_assets.id (SET NULL)
+  - Relationships: MediaAsset.scenes (one-to-many), Scene.keyframe_asset (many-to-one)
+- Added SceneRepository methods: create_scene, get_scene, list_scenes, update_scene_keyframe, delete_scenes_for_media_asset, get_scenes_by_detection_job
+- Added Scene Detection configuration to settings: scene_default_threshold, scene_min_duration_ms, keyframe_default_format, keyframe_default_quality
+- **Fixed critical Alembic migration bug**: Migration 84845e49c21c was auto-generated to drop all existing tables. Manually corrected to only CREATE scenes table with indexes.
+- Recreated test database by running all migrations in order (20261123_001 → 20261123_002 → 20261126_003 → 84845e49c21c)
+- Fixed pre-existing test infrastructure issue in test_source_repository.py (import conflict causing metadata collision)
+- All 239 backend tests pass
+- Updated PHASE-STATUS.md to reflect ING-004 IN PROGRESS
+- Pushed branch to origin
+
 ## 2026-11-22 — Documentation baseline created
 
 - Added draft product requirements, architecture, data model, API contracts, AI strategy, media pipeline, editor, publishing, analytics, security, testing, operations, SupoClip research, licensing, risks, roadmap and acceptance criteria.
