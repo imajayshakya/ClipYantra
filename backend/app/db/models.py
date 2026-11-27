@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, BigInteger, Integer, Numeric
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, BigInteger, Integer, Numeric, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -41,6 +41,7 @@ class SourceRecord(Base):
     payload_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
     validation_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     media_asset_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    transcription_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -67,6 +68,84 @@ class SourceRecord(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
+    transcripts: Mapped[list["Transcript"]] = relationship(
+        back_populates="source",
+        cascade="all, delete-orphan",
+    )
+
+
+class Transcript(Base):
+    __tablename__ = "transcripts"
+    __table_args__ = (
+        Index("ix_transcripts_source", "source_id"),
+        Index("ix_transcripts_media_asset", "media_asset_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    source_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("source_videos.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    workspace_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    media_asset_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("media_assets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    model: Mapped[str] = mapped_column(String(64), nullable=False)
+    language: Mapped[str] = mapped_column(String(10), nullable=False)
+    full_text: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    validation_error: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+        onupdate=utc_now,
+    )
+
+    source: Mapped["SourceRecord"] = relationship(back_populates="transcripts")
+    segments: Mapped[list["TranscriptSegment"]] = relationship(
+        back_populates="transcript",
+        cascade="all, delete-orphan",
+        order_by="TranscriptSegment.start_ms",
+    )
+
+
+class TranscriptSegment(Base):
+    __tablename__ = "transcript_segments"
+    __table_args__ = (
+        Index("ix_transcript_segments_transcript", "transcript_id"),
+        Index("ix_transcript_segments_timerange", "start_ms", "end_ms"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    transcript_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("transcripts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    start_ms: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    end_ms: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    speaker: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    confidence: Mapped[float | None] = mapped_column(Numeric(4, 3), nullable=True)
+    word_alignments: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+    )
+
+    transcript: Mapped["Transcript"] = relationship(back_populates="segments")
 
 
 class SourceRights(Base):

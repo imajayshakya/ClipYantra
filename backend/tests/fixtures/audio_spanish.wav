@@ -1,0 +1,5 @@
+# Spanish language WAV audio fixture for testing language detection
+# This is a placeholder - actual WAV would be generated with Spanish speech
+# For real tests, use: ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -ar 16000 -ac 1 audio_spanish.wav
+# Then overlay Spanish TTS or use a sample Spanish audio clip
+RIFF....WAVEfmt ................data..................

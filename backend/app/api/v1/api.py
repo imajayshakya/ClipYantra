@@ -2,13 +2,16 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import health
+from app.api.v1.endpoints import health, transcription
 from app.api.sources import create_sources_router
 
 api_router = APIRouter()
 
 # Health check endpoints
 api_router.include_router(health.router, prefix="/health", tags=["health"])
+
+# Transcription endpoints (ING-003)
+api_router.include_router(transcription.router, tags=["transcription"])
 
 # Source management endpoints
 # Note: source_store will be injected via create_app, so we don't include it here

@@ -1,3 +1,4 @@
+import os
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect
@@ -10,7 +11,14 @@ def test_ing001_migration_upgrade_and_downgrade(tmp_path, monkeypatch):
     sync_database_url = f"sqlite:///{database_path}"
     monkeypatch.setenv("DATABASE_URL", async_database_url)
 
-    config = Config("alembic.ini")
+    # Alembic config is in backend/alembic.ini - set working directory to backend
+    # and use absolute paths for alembic script_location
+    backend_dir = os.path.join(os.path.dirname(__file__), "..")
+    alembic_ini_path = os.path.join(backend_dir, "alembic.ini")
+    alembic_script_location = os.path.join(backend_dir, "alembic")
+    
+    config = Config(alembic_ini_path)
+    config.set_main_option("script_location", alembic_script_location)
     command.upgrade(config, "head")
 
     engine = create_engine(sync_database_url)

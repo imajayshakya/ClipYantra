@@ -30,7 +30,12 @@ target_metadata = Base.metadata
 
 def get_database_url() -> str:
     """Get database URL from environment or config."""
-    return os.getenv("DATABASE_URL", settings.DATABASE_URL)
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return url
+    if settings.DATABASE_URL is not None:
+        return settings.DATABASE_URL.get_secret_value()
+    return "sqlite+aiosqlite:///./test.db"
 
 
 def run_migrations_offline() -> None:
