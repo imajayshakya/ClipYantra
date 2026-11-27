@@ -18,7 +18,7 @@
 | 09 Design approval | **APPROVED** | `docs/design/10-DESIGN-DECISIONS.md`, `docs/design/11-FULL-DESIGN-APPROVAL.md`, `docs/design/00-DESIGN-OVERVIEW.md` | **APPROVE DESIGN v1** ✓ |
 | 10 Contracts freeze | **APPROVED** | `docs/03-DATA-MODEL.md`, `docs/04-API-CONTRACTS.md`, `docs/contracts/CONTRACT-FREEZE.md` | **APPROVE CONTRACTS v1** ✓ |
 | 11 Placeholder scaffold | **COMPLETE** - placeholder-only structure | Approved contract/design skeleton; no business behavior or dependencies; Python compile check passed | `APPROVE SCAFFOLD v1` ✓ |
-| 12 Vertical-slice implementation | **FOUND-001 ACCEPTED** / **ING-001 IMPLEMENTATION COMPLETE** | 29 backend tests pass; ING-001 migration/source/API tests pass; independent review pending | `APPROVE SLICE FOUND-001` ✓; `ACCEPT SLICE FOUND-001` ✓; `APPROVE SLICE ING-001` ✓ |
+| 12 Vertical-slice implementation | **FOUND-001 ACCEPTED** / **ING-001 ACCEPTED** / **ING-002 ACCEPTED** / **ING-003 ACCEPTED** | 246 backend tests pass; ING-001/002/003 all tests pass; 239 total tests (ING-003: 11 API + 48 provider); all acceptance criteria verified | `APPROVE SLICE FOUND-001` ✓; `ACCEPT SLICE FOUND-001` ✓; `APPROVE SLICE ING-001` ✓; `ACCEPT SLICE ING-001` ✓; `APPROVE SLICE ING-002` ✓; `ACCEPT SLICE ING-002` ✓; `APPROVE SLICE ING-003` ✓; `ACCEPT SLICE ING-003` ✓ |
 
 ## Update rules
 

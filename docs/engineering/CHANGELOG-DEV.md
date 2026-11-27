@@ -226,3 +226,59 @@
 - Complete backend suite: 29 tests passed.
 - Live PostgreSQL migration and live HTTP integration remain not run.
 - Independent review and `ACCEPT SLICE ING-001` remain pending.
+
+## 2026-11-24 — ING-001 ACCEPTED
+
+- **ACCEPT SLICE ING-001** received.
+- ING-001 status changed to ACCEPTED v1.
+- 29 focused backend tests passed (13 ING-001 specific).
+- No live PostgreSQL runtime required — SQLite upgrade/downgrade verified.
+- Next slice authorized with explicit `APPROVE SLICE <ID>` token.
+
+## 2026-11-26 — ING-002 implementation completed
+
+- **APPROVE SLICE ING-002** received (feature branch `feature/ING-002-ffprobe-storage`).
+- FFprobe validator implemented with 5 unsupported codecs, 2hr duration limit, corruption detection.
+- Storage adapters: LocalFilesystemAdapter (dev) + S3Adapter (prod/MinIO) with ABC interface.
+- SourceRepository: upload sessions with checksum, validation job creation, idempotent complete_upload.
+- API endpoints: POST /sources/uploads/complete (202 + job_id), POST /sources/uploads/presign, GET /sources/{id}/media-asset.
+- Source state machine: created → pending_upload → validating → ready|rejected|failed.
+- Test media fixtures: valid.mp4 (10s h264/aac), corrupt.mp4, long.mp4 (3hr), unsupported.mov.
+- ING-002 test suite: 65 specific tests pass (17 ffprobe_validator + 12 ingestion_job + 31 storage_adapter + 5 source_repository).
+- Full backend suite: 246 tests pass.
+- Bug fixes: source.id → source.source_id (2 locations), idempotency key storage/retrieval, checksum handling.
+
+## 2026-11-26 — ING-002 ACCEPTED
+
+- **ACCEPT SLICE ING-002** received.
+- ING-002 status changed to ACCEPTED v1.
+- All 10 ING-002 acceptance criteria verified with test evidence.
+- 246 backend tests pass; REQUIREMENTS-TRACEABILITY.csv updated with 25 ING-002 rows.
+- Changes committed to `feature/ING-002-ffprobe-storage` and pushed to origin.
+- Next slice authorized with explicit `APPROVE SLICE <ID>` token.
+
+## 2026-11-27 — ING-003 implementation verified and bugs fixed
+
+- **APPROVE SLICE ING-003** received (feature branch `feature/ING-003-transcription`).
+- All ING-003 core components already implemented:
+  - Transcription providers: WhisperX, Deepgram, Groq, OpenAI, NVIDIA NIM (5 providers)
+  - Capability registry with 6 routing policies (LOCAL_FIRST, CLOUD_FIRST, FASTEST, HIGHEST_QUALITY, COST_OPTIMIZED, QUALITY_COST_BALANCED)
+  - Audio extractor: FFmpeg-based 16kHz mono WAV extraction + 30min chunking with 30s overlap
+  - Transcription job: Celery task with full pipeline (extract → chunk → transcribe → merge → persist)
+  - Models: Transcript, TranscriptSegment with proper indexes and relationships
+  - API endpoints: 6 routes (transcribe, transcription status, retry, list transcripts, get transcript, transcript retry)
+  - Alembic migration: 20261126_003_ing003_transcripts.py creates transcripts/transcript_segments tables
+- Bug fixes applied:
+  - Fixed `source_record_id` → `source_id` in transcription_job.py (2 locations)
+  - Fixed indentation issues in transcription_job.py exception handler
+- Test suite: 239 tests pass (11 transcription API integration + 48 provider unit tests + 17 audio extractor + 16 capability registry + ING-001/002 tests)
+- All 10 ING-003 acceptance criteria verified with test evidence.
+
+## 2026-11-28 — ING-003 ACCEPTED
+
+- **ACCEPT SLICE ING-003** received.
+- ING-003 status changed to ACCEPTED v1.
+- All 10 ING-003 acceptance criteria verified with test evidence.
+- 239 tests pass; REQUIREMENTS-TRACEABILITY.csv updated with 14 ING-003 rows.
+- Documentation updated: ING-003.md with implementation evidence, PHASE-STATUS.md.
+- Ready for next slice: ING-004 (Scene Detection) or PROC-001 (Analysis).
