@@ -40,6 +40,7 @@ class SourceRecord(Base):
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     payload_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
     validation_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    completion_idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     media_asset_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     transcription_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

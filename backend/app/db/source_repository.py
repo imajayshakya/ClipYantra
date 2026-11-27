@@ -107,6 +107,7 @@ class SourceRepository:
                     status="pending_upload",
                     idempotency_key=idempotency_key,
                     payload_fingerprint=fingerprint,
+                                    checksum=request.checksum,
                 )
                 source.upload_sessions = [upload_session]
 
@@ -324,6 +325,50 @@ class SourceRepository:
                 source.status = status
                 if validation_job_id is not None:
                     source.validation_job_id = validation_job_id
+                session.commit()
+                return True
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def get_source_by_idempotency_key(
+        self,
+        workspace_id: str,
+        idempotency_key: str,
+    ) -> SourceRecord | None:
+        """Get source record by completion idempotency key."""
+        try:
+            with self._session_factory() as session:
+                return session.scalar(
+                    select(SourceRecord).where(
+                        SourceRecord.workspace_id == workspace_id,
+                        SourceRecord.completion_idempotency_key == idempotency_key,
+                    )
+                )
+        except SQLAlchemyError as exc:
+            raise SourceStoreUnavailableError(
+                "Source store is unavailable."
+            ) from exc
+
+    def update_source_completion_idempotency(
+        self,
+        workspace_id: str,
+        source_id: str,
+        idempotency_key: str,
+    ) -> bool:
+        """Store completion idempotency key on source record."""
+        try:
+            with self._session_factory() as session:
+                source = session.scalar(
+                    select(SourceRecord).where(
+                        SourceRecord.workspace_id == workspace_id,
+                        SourceRecord.id == source_id,
+                    )
+                )
+                if source is None:
+                    return False
+                source.completion_idempotency_key = idempotency_key
                 session.commit()
                 return True
         except SQLAlchemyError as exc:

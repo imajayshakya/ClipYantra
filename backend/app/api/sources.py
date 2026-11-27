@@ -224,17 +224,39 @@ def create_sources_router(source_store: SourceRepository | None) -> APIRouter:
                 ),
             )
 
+        # Check idempotency: if completion_idempotency_key is provided and matches existing
+        completion_key = idempotency_key or f"complete-{request.upload_session_id}"
+
+        existing_source = source_store.get_source_by_idempotency_key(
+            workspace_id=DEFAULT_WORKSPACE_ID,
+            idempotency_key=completion_key,
+        )
+        if existing_source and existing_source.validation_job_id:
+            # Return existing validation job ID for idempotent request
+            return CompleteUploadResponse(
+                source_id=existing_source.id,
+                status=existing_source.status,
+                validation_job_id=existing_source.validation_job_id,
+            )
+
         # Create validation job ID
         validation_job_id = str(uuid4())
-        
+
         # Update source with validation job ID
         source_store.update_source_status(
             workspace_id=DEFAULT_WORKSPACE_ID,
-            source_id=source.id,
+            source_id=source.source_id,
             status="validating",
             validation_job_id=validation_job_id,
         )
-        
+
+        # Store completion idempotency key for future idempotent requests
+        source_store.update_source_completion_idempotency(
+            workspace_id=DEFAULT_WORKSPACE_ID,
+            source_id=source.source_id,
+            idempotency_key=completion_key,
+        )
+
         # Update upload session status
         source_store.update_upload_session_status(
             workspace_id=DEFAULT_WORKSPACE_ID,
@@ -245,7 +267,7 @@ def create_sources_router(source_store: SourceRepository | None) -> APIRouter:
         # In a real implementation, this would be queued to Celery
         # For now, we return the validation job ID
         return CompleteUploadResponse(
-            source_id=source.id,
+            source_id=source.source_id,
             status="validating",
             validation_job_id=validation_job_id,
         )
@@ -295,7 +317,7 @@ def create_sources_router(source_store: SourceRepository | None) -> APIRouter:
                 ),
             )
 
-        storage_key = f"workspaces/{DEFAULT_WORKSPACE_ID}/sources/{source.id}/original/{uuid4().hex[:8]}"
+        storage_key = f"workspaces/{DEFAULT_WORKSPACE_ID}/sources/{source.source_id}/original/{uuid4().hex[:8]}"
         
         # Create storage adapter
         storage_config = StorageConfig(backend="local", local_root=STORAGE_ROOT)
