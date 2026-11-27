@@ -109,6 +109,26 @@ class Settings(BaseSettings):
         description="Allowed container formats",
     )
 
+    # Transcription (ING-003)
+    transcription_routing_policy: str = "local_first"
+    whisperx_model: str = "large-v3"
+    whisperx_device: str = "auto"
+    deepgram_api_key: Optional[str] = None
+    deepgram_model: str = "nova-2"
+    groq_api_key: Optional[str] = None
+    groq_model: str = "whisper-large-v3"
+    openai_api_key: Optional[str] = None
+    openai_whisper_model: str = "whisper-1"
+    nvidia_nim_base_url: Optional[str] = None
+    nvidia_nim_model: str = "parakeet-rnnt-1.1b"
+    nvidia_nim_api_key: Optional[str] = None
+
+    # Audio Extraction
+    audio_sample_rate: int = 16000
+    audio_channels: int = 1
+    chunk_duration_seconds: int = 1800  # 30 minutes
+    chunk_overlap_seconds: int = 30
+
     # Logging
     log_level: str = "INFO"
     log_format: str = "json"
@@ -291,6 +311,71 @@ class Settings(BaseSettings):
     def PROMETHEUS_METRICS_ENABLED(self) -> bool:
         return self.prometheus_metrics_enabled
 
+    # Transcription properties (ING-003)
+    @property
+    def TRANSCRIPTION_ROUTING_POLICY(self) -> str:
+        return self.transcription_routing_policy
+
+    @property
+    def WHISPERX_MODEL(self) -> str:
+        return self.whisperx_model
+
+    @property
+    def WHISPERX_DEVICE(self) -> str:
+        return self.whisperx_device
+
+    @property
+    def DEEPGRAM_API_KEY(self) -> Optional[str]:
+        return self.deepgram_api_key
+
+    @property
+    def DEEPGRAM_MODEL(self) -> str:
+        return self.deepgram_model
+
+    @property
+    def GROQ_API_KEY(self) -> Optional[str]:
+        return self.groq_api_key
+
+    @property
+    def GROQ_MODEL(self) -> str:
+        return self.groq_model
+
+    @property
+    def OPENAI_API_KEY(self) -> Optional[str]:
+        return self.openai_api_key
+
+    @property
+    def OPENAI_WHISPER_MODEL(self) -> str:
+        return self.openai_whisper_model
+
+    @property
+    def NVIDIA_NIM_BASE_URL(self) -> Optional[str]:
+        return self.nvidia_nim_base_url
+
+    @property
+    def NVIDIA_NIM_MODEL(self) -> str:
+        return self.nvidia_nim_model
+
+    @property
+    def NVIDIA_NIM_API_KEY(self) -> Optional[str]:
+        return self.nvidia_nim_api_key
+
+    @property
+    def AUDIO_SAMPLE_RATE(self) -> int:
+        return self.audio_sample_rate
+
+    @property
+    def AUDIO_CHANNELS(self) -> int:
+        return self.audio_channels
+
+    @property
+    def CHUNK_DURATION_SECONDS(self) -> int:
+        return self.chunk_duration_seconds
+
+    @property
+    def CHUNK_OVERLAP_SECONDS(self) -> int:
+        return self.chunk_overlap_seconds
+
     @field_validator("database_url", mode="before")
     @classmethod
     def validate_database_url(cls, v: Optional[str]) -> Optional[SecretStr]:
@@ -299,11 +384,10 @@ class Settings(BaseSettings):
         # Handle case where v is already a SecretStr (from pydantic model)
         if isinstance(v, SecretStr):
             v = v.get_secret_value()
+        # Allow async SQLite (sqlite+aiosqlite://) for testing only
+        if v.startswith("sqlite+aiosqlite://"):
+            return SecretStr(v)
         # Validate postgresql URL format
-        if v.startswith("sqlite://"):
-            raise ConfigurationError(
-                "DATABASE_URL must be a postgresql URL"
-            )
         if v.startswith("postgresql://") or v.startswith("postgresql+psycopg://"):
             # Check for whitespace in port area (e.g., "5432 /clip")
             if re.search(r':\d+\s+/', v):
@@ -327,8 +411,8 @@ class Settings(BaseSettings):
                 # No valid port found
                 raise ConfigurationError("DATABASE_URL has malformed port")
         else:
-            # Not a recognized scheme
-            raise ConfigurationError("DATABASE_URL must be a postgresql URL")
+            # Not a recognized scheme (only postgresql and async sqlite allowed)
+            raise ConfigurationError("DATABASE_URL must be a postgresql URL (async database allowed for testing)")
         return SecretStr(v)
 
     @field_validator("redis_url", mode="before")

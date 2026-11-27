@@ -1,14 +1,16 @@
 """ClipYantra Database Session Management."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
@@ -29,7 +31,6 @@ class DatabaseManager:
                 database_url = settings.DATABASE_URL
                 if database_url is None:
                     # Return a dummy engine for testing - will fail on actual use
-                    from sqlalchemy.ext.asyncio import create_async_engine
                     self._engine = create_async_engine("sqlite+aiosqlite:///:memory:")
                 else:
                     self._engine = create_async_engine(
@@ -85,6 +86,65 @@ class DatabaseManager:
 
 # Global database manager instance
 db_manager = DatabaseManager()
+
+# Synchronous session for Celery tasks
+_sync_engine = None
+_sync_session_factory = None
+
+
+def get_sync_engine():
+    """Get or create synchronous engine for Celery tasks."""
+    global _sync_engine
+    if _sync_engine is None:
+        database_url = settings.DATABASE_URL
+        if database_url is None:
+            # Use SQLite for testing
+            from sqlalchemy import create_engine
+            _sync_engine = create_engine("sqlite:///:memory:")
+        else:
+            # Convert async URL to sync
+            url = database_url.get_secret_value() if hasattr(database_url, 'get_secret_value') else str(database_url)
+            sync_url = url.replace("postgresql+psycopg://", "postgresql://").replace("postgresql+asyncpg://", "postgresql://")
+            _sync_engine = create_engine(
+                sync_url,
+                echo=settings.DEBUG,
+                pool_size=settings.DATABASE_POOL_SIZE,
+                max_overflow=settings.DATABASE_MAX_OVERFLOW,
+                pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+                pool_pre_ping=True,
+            )
+    return _sync_engine
+
+
+def get_sync_session_factory():
+    """Get or create synchronous session factory for Celery tasks."""
+    global _sync_session_factory
+    if _sync_session_factory is None:
+        _sync_session_factory = sessionmaker(
+            bind=get_sync_engine(),
+            class_=Session,
+            expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
+        )
+    return _sync_session_factory
+
+
+def get_sync_session() -> Generator[Session, None, None]:
+    """Get a synchronous database session for Celery tasks."""
+    session = get_sync_session_factory()()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+# Convenience for Celery tasks
+SessionLocal = get_sync_session_factory
 
 
 async def init_db() -> None:

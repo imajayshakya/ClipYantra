@@ -64,6 +64,12 @@ Thumbs.db
 *.temp
 *.bak
 *.orig
+fix_*.py
+test_*.txt
+test_output*.txt
+*_debug*.txt
+integration_error.txt
+uv.lock
 
 # Coverage / Reports
 coverage/

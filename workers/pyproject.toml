@@ -22,7 +22,7 @@ dependencies = [
     "celery[redis]==5.4.*",
     "redis==5.0.*",
     "sqlalchemy[asyncio]==2.0.*",
-    "asyncpg==0.29.*",
+        "psycopg[binary]==3.2.*",
     "pydantic==2.8.*",
     "pydantic-settings==2.3.*",
     "python-dotenv==1.0.*",
@@ -32,14 +32,14 @@ dependencies = [
     "opencv-python-headless==4.10.*",
     
     # Transcription
-    "faster-whisper==1.1.*",
-    "pyannote.audio==3.3.*",
-    "huggingface-hub==0.24.*",
+    "faster-whisper==1.2.*",
+        "pyannote.audio==3.3.*",
+        "huggingface-hub==0.28.*",
     
     # Analysis
-    "scikit-learn==1.5.*",
-    "numpy==1.26.*",
-    "scipy==1.13.*",
+    "scikit-learn==1.9.*",
+    "numpy==2.*",
+    "scipy==1.18.*",
     
     # Monitoring
     "prometheus-client==0.19.*",
@@ -118,12 +118,10 @@ target-version = "py311"
 line-length = 100
 indent-width = 4
 select = [
-    "E", "F", "I", "N", "UP", "W", "C4", "C90", "D", "DTZ", "EXE", "ISC", "ICN", "PIE", "PT", "Q", "RUF", "SIM", "T20", "TCH", "TID", "TRY", "ERA", "PD", "PL", "RET", "PTH", "TRI", "NPY", "LOG", "ARG", "A", "B", "COM", "CPY", "DTZ", "EM", "FIX", "FUR", "ISC", "ICN", "LOG", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTC", "PTR", "PTH", "PYI", "Q", "RSE", "RUF", "RET", "SIM", "SLF", "SLOT", "T20", "TCH", "TID", "TRI", "TRY", "TCH", "UP", "W", "YTT",
+    "A", "B", "C4", "C90", "COM", "CPY", "D", "DTZ", "E", "EM", "ERA", "EXE", "F", "FIX", "FUR", "I", "ICN", "ISC", "LOG", "N", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTC", "PTR", "PTH", "PYI", "Q", "RSE", "RET", "RUF", "SIM", "SLF", "SLOT", "T20", "TCH", "TID", "TRI", "TRY", "UP", "W", "YTT",
 ]
 ignore = []
-per-file-ignores = {
-    "tests/*": ["S101", "D100", "D101", "D102", "D103", "D104", "D105", "D107"],
-}
+per-file-ignores = { "tests/*" = ["S101", "D100", "D101", "D102", "D103", "D104", "D105", "D107"] }
 exclude = [".git", "__pycache__", ".venv", "build", "dist", "*.egg-info"]
 
 [tool.ruff.format]
@@ -162,7 +160,7 @@ exclude_lines = [
 [tool.black]
 line-length = 100
 target-version = ["py311"]
-include = "\.pyi?$"
+include = "\\.pyi?$"
 extend-exclude = '''
 /(
   # directories
