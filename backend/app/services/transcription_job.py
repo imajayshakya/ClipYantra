@@ -226,17 +226,17 @@ def transcribe_media_asset(
         
     except Exception as e:
         logger.error(f"Transcription failed for MediaAsset {media_asset_id}: {e}", exc_info=True)
-        
+
         # Update status to 'transcription_failed'
         try:
-            source_record = db.get(SourceRecord, media_asset.source_record_id) if media_asset else None
+            source_record = db.get(SourceRecord, media_asset.source_id) if media_asset else None
             if source_record:
                 source_record.status = "transcription_failed"
                 source_record.updated_at = datetime.now(timezone.utc)
                 db.commit()
         except Exception:
             pass  # Don't mask original error
-        
+
         # Re-raise for Celery retry
         raise self.retry(exc=e)
         
@@ -312,7 +312,7 @@ def retry_failed_transcription(self, media_asset_id: str) -> dict:
         if not media_asset:
             raise ValueError(f"MediaAsset not found: {media_asset_id}")
         
-        source_record = db.get(SourceRecord, media_asset.source_record_id)
+        source_record = db.get(SourceRecord, media_asset.source_id)
         if not source_record:
             raise ValueError(f"SourceRecord not found")
         
